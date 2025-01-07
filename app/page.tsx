@@ -6,6 +6,7 @@ import { eachMonthOfInterval, endOfMonth, format, formatDistanceToNow, startOfMo
 import UserPurchaseCard, { UserPurchaseProps } from "@/components/user-purchase-card";
 import BarChart from "@/components/barchart";
 import LineGraph from "@/components/line-graph";
+import GoalDataCard from "@/components/goal";
 
 export default async function Dashboard() {
   const currentDate = new Date();
@@ -109,6 +110,10 @@ export default async function Dashboard() {
     return { month: monthString, total: salesInMonth}
   })
 
+  // Goal Amounts
+  const goalAmount = 1000;
+  const goalProgress = totalAmount / goalAmount * 100;
+
   return (
     <div className="flex flex-col gap-5 w-full">
       <h1 className="text-2xl font-bold text-center mx-6">Dashboard</h1>
@@ -177,6 +182,7 @@ export default async function Dashboard() {
             <BarChart data={monthlyUsersData} />
             <LineGraph data={monthlySalesData}/>
           </section>
+          <GoalDataCard value={goalProgress} goal={goalAmount} />
         </div>
       </div>
     </div>
