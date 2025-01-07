@@ -2,9 +2,35 @@ import { DashboardCard, DashboardCardContent } from "@/components/dashboard-card
 import UserDataCard, { UserDataProps } from "@/components/user-data-card";
 import { db } from "@/lib/db";
 import { Calendar, DollarSign, PersonStanding, UserPlus, UserRoundCheck } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
+import { endOfMonth, formatDistanceToNow, startOfMonth } from "date-fns";
 
 export default async function Dashboard() {
+  const currentDate = new Date();
+
+  // User Count
+  const userCount = await db.user.count()
+
+  // User Count This Month
+  const userCountThisMonth = await db.user.count({
+    where: {
+      createdAt: {
+        gte: startOfMonth(currentDate),
+        lte: endOfMonth(currentDate)
+      }
+    }
+  })
+
+  // Sales Count
+  const salesCount = await db.purchase.count()
+
+  // Sales Total
+  const salesTotal = await db.purchase.aggregate({
+    _sum: {
+      amount: true
+    }
+  })
+
+  const totalAmount = salesTotal._sum.amount || 0;
 
   const recentUsers = await db.user.findMany({
     orderBy: {
@@ -30,25 +56,25 @@ export default async function Dashboard() {
             <DashboardCard 
               label={"Total Revenue"}
               Icon={DollarSign}
-              amount={12000}
+              amount={`$${totalAmount}`}
               description="All Time"
             />
             <DashboardCard 
-              label={"Total Revenue"}
+              label={"Total Paid Subscriptions"}
               Icon={Calendar}
-              amount={12000}
+              amount={`+${salesCount}`}
               description="All Time"
             />
             <DashboardCard 
-              label={"Total Revenue"}
+              label={"Total Users"}
               Icon={PersonStanding}
-              amount={12000}
+              amount={`+${userCount}`}
               description="All Time"
             />
             <DashboardCard 
-              label={"Total Revenue"}
+              label={"Users This Month"}
               Icon={UserPlus}
-              amount={12000}
+              amount={`+${userCountThisMonth}`}
               description="This Month"
             />
           </section>
