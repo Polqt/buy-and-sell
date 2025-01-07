@@ -2,8 +2,9 @@ import { DashboardCard, DashboardCardContent } from "@/components/dashboard-card
 import UserDataCard, { UserDataProps } from "@/components/user-data-card";
 import { db } from "@/lib/db";
 import { Calendar, CreditCard, DollarSign, PersonStanding, UserPlus, UserRoundCheck } from "lucide-react";
-import { endOfMonth, formatDistanceToNow, startOfMonth } from "date-fns";
+import { eachMonthOfInterval, endOfMonth, format, formatDistanceToNow, startOfMonth } from "date-fns";
 import UserPurchaseCard, { UserPurchaseProps } from "@/components/user-purchase-card";
+import BarChart from "@/components/barchart";
 
 export default async function Dashboard() {
   const currentDate = new Date();
@@ -66,6 +67,26 @@ export default async function Dashboard() {
     image: purchase.user.image || './mesh.jpg',
     saleAmount: `$${(purchase.amount || 0).toFixed(2)}`
   }))
+
+  // Users This Month
+  const usersThisMonth = await db.user.groupBy({
+    by: ['createdAt'],
+    _count: {
+      createdAt: true
+    },
+    orderBy: {
+      createdAt: 'asc'
+    }
+  })
+
+  const monthlyUsersData = eachMonthOfInterval({
+    start: startOfMonth(new Date(usersThisMonth[0].createdAt || new Date())),
+    end: endOfMonth(currentDate)
+  }).map(month => {
+    const monthString = format(month, 'MMM');
+    const userMonthly = usersThisMonth.filter(user => format(new Date(user.createdAt), 'MMM') === monthString).reduce((total, user) => total + user._count.createdAt, 0);
+    return { month: monthString, total: userMonthly }
+  })
 
   return (
     <div className="flex flex-col gap-5 w-full">
@@ -130,6 +151,10 @@ export default async function Dashboard() {
               ))}
             </DashboardCardContent> 
           </section> 
+
+          <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 transition-all">
+            <BarChart data={monthlyUsersData} />
+          </section>
         </div>
       </div>
     </div>
