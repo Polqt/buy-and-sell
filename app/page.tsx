@@ -1,8 +1,9 @@
 import { DashboardCard, DashboardCardContent } from "@/components/dashboard-card";
 import UserDataCard, { UserDataProps } from "@/components/user-data-card";
 import { db } from "@/lib/db";
-import { Calendar, DollarSign, PersonStanding, UserPlus, UserRoundCheck } from "lucide-react";
+import { Calendar, CreditCard, DollarSign, PersonStanding, UserPlus, UserRoundCheck } from "lucide-react";
 import { endOfMonth, formatDistanceToNow, startOfMonth } from "date-fns";
+import UserPurchaseCard, { UserPurchaseProps } from "@/components/user-purchase-card";
 
 export default async function Dashboard() {
   const currentDate = new Date();
@@ -32,6 +33,7 @@ export default async function Dashboard() {
 
   const totalAmount = salesTotal._sum.amount || 0;
 
+  // Fetch Recent Users
   const recentUsers = await db.user.findMany({
     orderBy: {
       createdAt: 'desc'
@@ -39,12 +41,30 @@ export default async function Dashboard() {
     take: 7
   });
 
+  // Fetch Recent Sales
+  const recentSales = await db.purchase.findMany({
+    orderBy: {
+      createdAt: 'desc'
+    },
+    take: 7,
+    include: {
+      user: true
+    }
+  })
+
   const UserData: UserDataProps [] = recentUsers.map((account) => ({
     name: account.name || 'Unknown',
     email: account.email || 'No email provided',
     image: account.image || './mesh.jpg',
     time: formatDistanceToNow(new Date(account.createdAt),
     { addSuffix: true })
+  }))
+
+    const PurchaseCard: UserPurchaseProps[] = recentSales.map((purchase) => ({
+    name: purchase.user.name || 'Unknown',
+    email: purchase.user.email || 'No email provided',
+    image: purchase.user.image || './mesh.jpg',
+    saleAmount: `$${(purchase.amount || 0).toFixed(2)}`
   }))
 
   return (
@@ -91,6 +111,21 @@ export default async function Dashboard() {
                   email={data.email}
                   image={data.image}
                   time={data.time}
+                />
+              ))}
+            </DashboardCardContent> 
+            <DashboardCardContent>
+              <section className="flex justify-between gap-2 pb-2">
+                <p>Recent Users</p>
+                <CreditCard className="h-4 w-4" />
+              </section>
+              {PurchaseCard.map((data, index) => (
+                <UserPurchaseCard 
+                  key={index}
+                  name={data.name}
+                  email={data.email}
+                  image={data.image}
+                  saleAmount={data.saleAmount}
                 />
               ))}
             </DashboardCardContent> 
