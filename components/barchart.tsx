@@ -1,6 +1,6 @@
 'use client'
 
-import { CandlestickChart } from 'lucide-react';
+import { User } from 'lucide-react';
 import {
     BarChart as BarGraph,
     ResponsiveContainer,
@@ -10,19 +10,19 @@ import {
     CartesianGrid,
 } from 'recharts'
 
-export type BarCharProps = {
+export type BarChartProps = {
     data: { 
         month: string;
         total: number;
     } []
 }
 
-export default function BarChart({ data} : BarCharProps) {
+export default function BarChart({ data} : BarChartProps) {
     return (
-        <div className='shadow w-full flex flex-col gap-3 rounded-[6px] p-5'>
+        <div className='shadow w-full flex flex-col gap-3 rounded-[6px] p-5 bg-slate-100/90'>
             <section className='flex justify-between gap-2 pb-2'>
-                <p>Sales Data</p>
-                <CandlestickChart className='h-4 w-4' />
+                <p>User Data</p>
+                <User className='h-4 w-4' />
             </section>
             <ResponsiveContainer width={'100%'} height={350}>
                 <BarGraph data={data} margin={{ top: 20, left: -10, right: 10 }}>

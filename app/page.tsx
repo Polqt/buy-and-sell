@@ -5,6 +5,7 @@ import { Calendar, CreditCard, DollarSign, PersonStanding, UserPlus, UserRoundCh
 import { eachMonthOfInterval, endOfMonth, format, formatDistanceToNow, startOfMonth } from "date-fns";
 import UserPurchaseCard, { UserPurchaseProps } from "@/components/user-purchase-card";
 import BarChart from "@/components/barchart";
+import LineGraph from "@/components/line-graph";
 
 export default async function Dashboard() {
   const currentDate = new Date();
@@ -88,6 +89,26 @@ export default async function Dashboard() {
     return { month: monthString, total: userMonthly }
   })
 
+  const salesThisMonth = await db.purchase.groupBy({
+    by: ['createdAt'],
+    _sum: {
+      amount: true
+    },
+    orderBy: {
+      createdAt: 'asc'
+    }
+  })
+
+  const monthlySalesData = eachMonthOfInterval({
+    start: startOfMonth(new Date(salesThisMonth[0].createdAt || new Date())),
+    end: endOfMonth(currentDate),
+  }).map(month => {
+    const monthString = format(month, 'MMM');
+    const salesInMonth = salesThisMonth.filter(sale => format(new Date(sale.createdAt), 'MMM') === monthString).reduce((total, sale) => total + sale._sum.amount!, 0);
+
+    return { month: monthString, total: salesInMonth}
+  })
+
   return (
     <div className="flex flex-col gap-5 w-full">
       <h1 className="text-2xl font-bold text-center mx-6">Dashboard</h1>
@@ -154,6 +175,7 @@ export default async function Dashboard() {
 
           <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 transition-all">
             <BarChart data={monthlyUsersData} />
+            <LineGraph data={monthlySalesData}/>
           </section>
         </div>
       </div>
