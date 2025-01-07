@@ -1,8 +1,26 @@
 import { DashboardCard, DashboardCardContent } from "@/components/dashboard-card";
-import UserDataCard from "@/components/user-data-card";
+import UserDataCard, { UserDataProps } from "@/components/user-data-card";
+import { db } from "@/lib/db";
 import { Calendar, DollarSign, PersonStanding, UserPlus, UserRoundCheck } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
 
-export default function Dashboard() {
+export default async function Dashboard() {
+
+  const recentUsers = await db.user.findMany({
+    orderBy: {
+      createdAt: 'desc'
+    },
+    take: 7
+  });
+
+  const UserData: UserDataProps [] = recentUsers.map((account) => ({
+    name: account.name || 'Unknown',
+    email: account.email || 'No email provided',
+    image: account.image || './mesh.jpg',
+    time: formatDistanceToNow(new Date(account.createdAt),
+    { addSuffix: true })
+  }))
+
   return (
     <div className="flex flex-col gap-5 w-full">
       <h1 className="text-2xl font-bold text-center mx-6">Dashboard</h1>
@@ -40,12 +58,15 @@ export default function Dashboard() {
                 <p>Recent Users</p>
                 <UserRoundCheck className="h-4 w-4" />
               </section>
-              <UserDataCard 
-                name="John Doe"
-                image=""
-                email="poyhidalgo@gmail.com"
-                time="1 hour ago"
-              />
+              {UserData.map((data, index) => (
+                <UserDataCard 
+                  key={index}
+                  name={data.name}
+                  email={data.email}
+                  image={data.image}
+                  time={data.time}
+                />
+              ))}
             </DashboardCardContent> 
           </section> 
         </div>
